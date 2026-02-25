@@ -1,0 +1,783 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>面積換算ツール</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+JP:wght@300;400;700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0f0e0c;
+    --surface: #1a1815;
+    --border: #2e2b27;
+    --gold: #c9a84c;
+    --gold-light: #e8c97a;
+    --text: #e8e0d0;
+    --muted: #7a7060;
+    --accent: #8b6914;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: 'Noto Serif JP', serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 2rem 1rem;
+    background-image: 
+      radial-gradient(ellipse at 20% 20%, rgba(201,168,76,0.05) 0%, transparent 50%),
+      radial-gradient(ellipse at 80% 80%, rgba(139,105,20,0.05) 0%, transparent 50%);
+  }
+
+  .container {
+    width: 100%;
+    max-width: 640px;
+  }
+
+  header {
+    text-align: center;
+    margin-bottom: 3rem;
+  }
+
+  .logo-mark {
+    font-family: 'DM Mono', monospace;
+    font-size: 0.7rem;
+    letter-spacing: 0.4em;
+    color: var(--gold);
+    text-transform: uppercase;
+    margin-bottom: 0.8rem;
+    opacity: 0.8;
+  }
+
+  h1 {
+    font-size: 2rem;
+    font-weight: 300;
+    letter-spacing: 0.05em;
+    color: var(--text);
+    margin-bottom: 0.4rem;
+  }
+
+  h1 span {
+    color: var(--gold);
+  }
+
+  .subtitle {
+    font-size: 0.8rem;
+    color: var(--muted);
+    letter-spacing: 0.15em;
+  }
+
+  .divider {
+    width: 60px;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, var(--gold), transparent);
+    margin: 1.5rem auto;
+  }
+
+  /* Input cards */
+  .units-grid {
+    display: grid;
+    gap: 1px;
+    background: var(--border);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    overflow: hidden;
+    margin-bottom: 2rem;
+  }
+
+  .unit-card {
+    background: var(--surface);
+    padding: 1.5rem 1.8rem;
+    transition: background 0.2s;
+    position: relative;
+  }
+
+  .unit-card:hover {
+    background: #1e1c19;
+  }
+
+  .unit-card.active {
+    background: #1e1c19;
+  }
+
+  .unit-card.active::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 0;
+    bottom: 0;
+    width: 2px;
+    background: var(--gold);
+  }
+
+  .unit-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    margin-bottom: 0.8rem;
+  }
+
+  .unit-name {
+    font-family: 'DM Mono', monospace;
+    font-size: 0.75rem;
+    letter-spacing: 0.2em;
+    color: var(--gold);
+    text-transform: uppercase;
+  }
+
+  .unit-jp {
+    font-size: 0.75rem;
+    color: var(--muted);
+    letter-spacing: 0.1em;
+  }
+
+  .input-wrapper {
+    display: flex;
+    align-items: baseline;
+    gap: 0.6rem;
+  }
+
+  input[type="number"] {
+    flex: 1;
+    background: transparent;
+    border: none;
+    border-bottom: 1px solid var(--border);
+    color: var(--text);
+    font-family: 'DM Mono', monospace;
+    font-size: 1.8rem;
+    font-weight: 500;
+    padding: 0.3rem 0;
+    outline: none;
+    transition: border-color 0.2s;
+    width: 100%;
+    -moz-appearance: textfield;
+  }
+
+  input[type="number"]::-webkit-inner-spin-button,
+  input[type="number"]::-webkit-outer-spin-button {
+    -webkit-appearance: none;
+  }
+
+  input[type="number"]:focus {
+    border-bottom-color: var(--gold);
+  }
+
+  .unit-symbol {
+    font-family: 'DM Mono', monospace;
+    font-size: 1rem;
+    color: var(--muted);
+    white-space: nowrap;
+    min-width: 3rem;
+  }
+
+  /* Price calculator */
+  .price-section {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    padding: 1.5rem 1.8rem;
+    margin-bottom: 2rem;
+  }
+
+  .section-label {
+    font-family: 'DM Mono', monospace;
+    font-size: 0.7rem;
+    letter-spacing: 0.3em;
+    color: var(--gold);
+    text-transform: uppercase;
+    margin-bottom: 1.2rem;
+    display: flex;
+    align-items: center;
+    gap: 0.8rem;
+  }
+
+  .section-label::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: var(--border);
+  }
+
+  .price-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1rem;
+    margin-bottom: 1rem;
+  }
+
+  .price-input-group label {
+    display: block;
+    font-size: 0.7rem;
+    color: var(--muted);
+    letter-spacing: 0.15em;
+    margin-bottom: 0.4rem;
+  }
+
+  .price-input-group input {
+    width: 100%;
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 2px;
+    color: var(--text);
+    font-family: 'DM Mono', monospace;
+    font-size: 1rem;
+    padding: 0.6rem 0.8rem;
+    outline: none;
+    transition: border-color 0.2s;
+    -moz-appearance: textfield;
+  }
+
+  .price-input-group input::-webkit-inner-spin-button,
+  .price-input-group input::-webkit-outer-spin-button {
+    -webkit-appearance: none;
+  }
+
+  .price-input-group input:focus {
+    border-color: var(--gold);
+  }
+
+  .price-select {
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 2px;
+    color: var(--text);
+    font-family: 'DM Mono', monospace;
+    font-size: 0.85rem;
+    padding: 0.6rem 0.8rem;
+    outline: none;
+    cursor: pointer;
+    width: 100%;
+  }
+
+  .price-results {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 0.8rem;
+    margin-top: 1rem;
+    padding-top: 1rem;
+    border-top: 1px solid var(--border);
+  }
+
+  .price-result-item {
+    text-align: center;
+  }
+
+  .price-result-label {
+    font-size: 0.65rem;
+    color: var(--muted);
+    letter-spacing: 0.15em;
+    margin-bottom: 0.3rem;
+    display: block;
+  }
+
+  .price-result-value {
+    font-family: 'DM Mono', monospace;
+    font-size: 0.9rem;
+    color: var(--gold-light);
+  }
+
+  /* Info section */
+  .info-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1px;
+    background: var(--border);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    overflow: hidden;
+    margin-bottom: 2rem;
+  }
+
+  .info-item {
+    background: var(--surface);
+    padding: 1rem;
+    text-align: center;
+  }
+
+  .info-value {
+    font-family: 'DM Mono', monospace;
+    font-size: 0.85rem;
+    color: var(--gold);
+    margin-bottom: 0.2rem;
+  }
+
+  .info-label {
+    font-size: 0.65rem;
+    color: var(--muted);
+    letter-spacing: 0.1em;
+  }
+
+  /* Forex section */
+  .forex-section {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    padding: 1.5rem 1.8rem;
+    margin-bottom: 2rem;
+  }
+
+  .rate-row {
+    display: flex;
+    align-items: center;
+    gap: 0.8rem;
+    margin-bottom: 1rem;
+  }
+
+  .rate-badge {
+    font-family: 'DM Mono', monospace;
+    font-size: 0.75rem;
+    color: var(--gold);
+    background: rgba(201,168,76,0.08);
+    border: 1px solid rgba(201,168,76,0.2);
+    border-radius: 2px;
+    padding: 0.25rem 0.6rem;
+    white-space: nowrap;
+  }
+
+  .rate-status {
+    font-size: 0.7rem;
+    color: var(--muted);
+    letter-spacing: 0.1em;
+  }
+
+  .rate-status.ok { color: #6dba7f; }
+  .rate-status.error { color: #c96c6c; }
+
+  .rate-manual {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin-bottom: 1rem;
+  }
+
+  .rate-manual label {
+    font-size: 0.7rem;
+    color: var(--muted);
+    letter-spacing: 0.1em;
+    white-space: nowrap;
+  }
+
+  .rate-manual input {
+    width: 120px;
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 2px;
+    color: var(--text);
+    font-family: 'DM Mono', monospace;
+    font-size: 0.9rem;
+    padding: 0.4rem 0.6rem;
+    outline: none;
+    -moz-appearance: textfield;
+  }
+
+  .rate-manual input::-webkit-inner-spin-button,
+  .rate-manual input::-webkit-outer-spin-button { -webkit-appearance: none; }
+
+  .rate-manual input:focus { border-color: var(--gold); }
+
+  .forex-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1rem;
+    margin-bottom: 1rem;
+  }
+
+  .forex-results {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 0.8rem;
+    margin-top: 1rem;
+    padding-top: 1rem;
+    border-top: 1px solid var(--border);
+  }
+
+  .reset-btn {
+    display: block;
+    width: 100%;
+    padding: 1rem;
+    background: transparent;
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    color: var(--muted);
+    font-family: 'DM Mono', monospace;
+    font-size: 0.75rem;
+    letter-spacing: 0.3em;
+    text-transform: uppercase;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+
+  .reset-btn:hover {
+    border-color: var(--gold);
+    color: var(--gold);
+  }
+
+  footer {
+    text-align: center;
+    margin-top: 2rem;
+    font-size: 0.65rem;
+    color: var(--muted);
+    letter-spacing: 0.15em;
+    opacity: 0.6;
+  }
+</style>
+</head>
+<body>
+<div class="container">
+  <header>
+    <div class="logo-mark">Real Estate</div>
+    <h1>面積<span>換算</span>ツール</h1>
+    <p class="subtitle">坪 · 平方メートル · 平方フィート</p>
+    <div class="divider"></div>
+  </header>
+
+  <!-- Unit Converter -->
+  <div class="units-grid">
+    <div class="unit-card" id="card-tsubo">
+      <div class="unit-header">
+        <span class="unit-name">Tsubo</span>
+        <span class="unit-jp">坪</span>
+      </div>
+      <div class="input-wrapper">
+        <input type="number" id="input-tsubo" placeholder="0" min="0" step="0.01">
+        <span class="unit-symbol">坪</span>
+      </div>
+    </div>
+
+    <div class="unit-card" id="card-sqm">
+      <div class="unit-header">
+        <span class="unit-name">Square Meter</span>
+        <span class="unit-jp">平方メートル</span>
+      </div>
+      <div class="input-wrapper">
+        <input type="number" id="input-sqm" placeholder="0" min="0" step="0.01">
+        <span class="unit-symbol">m²</span>
+      </div>
+    </div>
+
+    <div class="unit-card" id="card-sqft">
+      <div class="unit-header">
+        <span class="unit-name">Square Feet</span>
+        <span class="unit-jp">平方フィート</span>
+      </div>
+      <div class="input-wrapper">
+        <input type="number" id="input-sqft" placeholder="0" min="0" step="0.01">
+        <span class="unit-symbol">ft²</span>
+      </div>
+    </div>
+
+    <div class="unit-card" id="card-jo">
+      <div class="unit-header">
+        <span class="unit-name">Jo</span>
+        <span class="unit-jp">畳（江戸間）</span>
+      </div>
+      <div class="input-wrapper">
+        <input type="number" id="input-jo" placeholder="0" min="0" step="0.1">
+        <span class="unit-symbol">畳</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Reference info -->
+  <div class="info-grid">
+    <div class="info-item">
+      <div class="info-value">1坪</div>
+      <div class="info-label">= 3.306 m²</div>
+    </div>
+    <div class="info-item">
+      <div class="info-value">1 m²</div>
+      <div class="info-label">= 10.764 ft²</div>
+    </div>
+    <div class="info-item">
+      <div class="info-value">1畳</div>
+      <div class="info-label">= 1.653 m²（江戸間）</div>
+    </div>
+  </div>
+
+  <!-- Price Calculator -->
+  <div class="price-section">
+    <div class="section-label">単価計算</div>
+    <div class="price-input-group">
+      <label>物件の総額（万円）</label>
+      <input type="number" id="price-total" placeholder="例: 5000" min="0" style="width:100%">
+    </div>
+    <div id="price-no-area" style="margin-top:0.8rem; font-size:0.75rem; color:var(--muted); letter-spacing:0.1em; display:none;">
+      ※ 上の面積欄に数値を入力すると単価が表示されます
+    </div>
+    <div class="price-results" id="price-results-block">
+      <div class="price-result-item">
+        <span class="price-result-label">坪単価</span>
+        <span class="price-result-value" id="result-tsubo-price">—</span>
+      </div>
+      <div class="price-result-item">
+        <span class="price-result-label">m² 単価</span>
+        <span class="price-result-value" id="result-sqm-price">—</span>
+      </div>
+      <div class="price-result-item">
+        <span class="price-result-label">ft² 単価</span>
+        <span class="price-result-value" id="result-sqft-price">—</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Forex Calculator -->
+  <div class="forex-section">
+    <div class="section-label">為替・単価計算（外貨）</div>
+
+    <div class="rate-row">
+      <span class="rate-badge" id="rate-display">USD/JPY —</span>
+      <span class="rate-status" id="rate-status">レート取得中...</span>
+    </div>
+
+    <div class="rate-manual">
+      <label>レートを手動で上書き：</label>
+      <input type="number" id="rate-override" placeholder="例: 150.5" min="1" step="0.01">
+      <span style="font-size:0.7rem; color:var(--muted);">円/USD</span>
+    </div>
+
+    <div class="forex-grid">
+      <div class="price-input-group">
+        <label>物件の総額（USD）</label>
+        <input type="number" id="forex-total-usd" placeholder="例: 500000" min="0">
+      </div>
+      <div class="price-input-group">
+        <label>物件の総額（万円換算）</label>
+        <input type="number" id="forex-total-jpy" placeholder="自動計算" min="0" readonly
+          style="background: rgba(201,168,76,0.04); cursor:default;">
+      </div>
+    </div>
+
+    <div id="forex-no-area" style="font-size:0.75rem; color:var(--muted); letter-spacing:0.1em; display:none;">
+      ※ 上の面積欄に数値を入力すると単価が表示されます
+    </div>
+
+    <div class="forex-results">
+      <div class="price-result-item">
+        <span class="price-result-label">坪単価</span>
+        <span class="price-result-value" id="forex-result-tsubo">—</span>
+      </div>
+      <div class="price-result-item">
+        <span class="price-result-label">m² 単価</span>
+        <span class="price-result-value" id="forex-result-sqm">—</span>
+      </div>
+      <div class="price-result-item">
+        <span class="price-result-label">ft² 単価</span>
+        <span class="price-result-value" id="forex-result-sqft">—</span>
+      </div>
+    </div>
+  </div>
+
+  <button class="reset-btn" onclick="resetAll()">リセット</button>
+
+  <footer>1坪 = 400/121 m² ≈ 3.30579 m² | 1 ft² = 0.0929 m²</footer>
+</div>
+
+<script>
+  // Conversion constants
+  const TSUBO_TO_SQM = 400 / 121;  // exact: 3.305785...
+  const SQM_TO_SQFT = 10.76391;
+  const JO_TO_SQM = 400 / 242;     // 江戸間: 1.652893...
+
+  let updating = false;
+
+  function round(v, digits = 4) {
+    return Math.round(v * Math.pow(10, digits)) / Math.pow(10, digits);
+  }
+
+  function setActive(id) {
+    document.querySelectorAll('.unit-card').forEach(c => c.classList.remove('active'));
+    document.getElementById('card-' + id).classList.add('active');
+  }
+
+  function convert(source, value) {
+    if (updating) return;
+    updating = true;
+
+    const v = parseFloat(value);
+    if (isNaN(v) || value === '') {
+      ['tsubo', 'sqm', 'sqft', 'jo'].forEach(id => {
+        if (id !== source) document.getElementById('input-' + id).value = '';
+      });
+      updating = false;
+      updatePriceCalc();
+      return;
+    }
+
+    let sqm;
+    switch (source) {
+      case 'tsubo': sqm = v * TSUBO_TO_SQM; break;
+      case 'sqm':   sqm = v; break;
+      case 'sqft':  sqm = v / SQM_TO_SQFT; break;
+      case 'jo':    sqm = v * JO_TO_SQM; break;
+    }
+
+    if (source !== 'tsubo') document.getElementById('input-tsubo').value = round(sqm / TSUBO_TO_SQM);
+    if (source !== 'sqm')   document.getElementById('input-sqm').value   = round(sqm);
+    if (source !== 'sqft')  document.getElementById('input-sqft').value  = round(sqm * SQM_TO_SQFT);
+    if (source !== 'jo')    document.getElementById('input-jo').value    = round(sqm / JO_TO_SQM, 2);
+
+    updating = false;
+    updatePriceCalc();
+  }
+
+  function updatePriceCalc() {
+    const totalStr = document.getElementById('price-total').value;
+    const total = parseFloat(totalStr);
+
+    const sqmVal = parseFloat(document.getElementById('input-sqm').value);
+    const hasArea = !isNaN(sqmVal) && sqmVal > 0;
+    const hasTotal = !isNaN(total) && total > 0;
+
+    const noAreaMsg = document.getElementById('price-no-area');
+    const resultsBlock = document.getElementById('price-results-block');
+
+    if (!hasTotal) {
+      document.getElementById('result-tsubo-price').textContent = '—';
+      document.getElementById('result-sqm-price').textContent = '—';
+      document.getElementById('result-sqft-price').textContent = '—';
+      noAreaMsg.style.display = 'none';
+      return;
+    }
+
+    if (!hasArea) {
+      document.getElementById('result-tsubo-price').textContent = '—';
+      document.getElementById('result-sqm-price').textContent = '—';
+      document.getElementById('result-sqft-price').textContent = '—';
+      noAreaMsg.style.display = 'block';
+      return;
+    }
+
+    noAreaMsg.style.display = 'none';
+
+    // total(万円) ÷ 面積(sqm) = 万円/m²
+    const pricePerSqm = total / sqmVal;
+    const pTsubo = round(pricePerSqm * TSUBO_TO_SQM, 2);
+    const pSqm   = round(pricePerSqm, 2);
+    const pSqft  = round(pricePerSqm / SQM_TO_SQFT, 2);
+
+    document.getElementById('result-tsubo-price').textContent = pTsubo.toLocaleString() + ' 万円';
+    document.getElementById('result-sqm-price').textContent   = pSqm.toLocaleString() + ' 万円';
+    document.getElementById('result-sqft-price').textContent  = pSqft.toLocaleString() + ' 万円';
+  }
+
+  // ── Forex ──────────────────────────────────────────
+  let usdJpyRate = null;
+
+  async function fetchRate() {
+    const statusEl = document.getElementById('rate-status');
+    const displayEl = document.getElementById('rate-display');
+    try {
+      // Free, no-key API
+      const res = await fetch('https://open.er-api.com/v6/latest/USD');
+      const data = await res.json();
+      if (data && data.rates && data.rates.JPY) {
+        usdJpyRate = data.rates.JPY;
+        displayEl.textContent = 'USD/JPY ' + usdJpyRate.toFixed(2);
+        statusEl.textContent = 'リアルタイムレート取得済';
+        statusEl.className = 'rate-status ok';
+        // Only pre-fill override if user hasn't touched it
+        const ov = document.getElementById('rate-override');
+        if (!ov.value) ov.placeholder = usdJpyRate.toFixed(2);
+      } else {
+        throw new Error('no rate');
+      }
+    } catch(e) {
+      statusEl.textContent = '取得失敗 — 手動でレートを入力してください';
+      statusEl.className = 'rate-status error';
+      displayEl.textContent = 'USD/JPY —';
+    }
+    updateForexCalc();
+  }
+
+  function getEffectiveRate() {
+    const ov = parseFloat(document.getElementById('rate-override').value);
+    if (!isNaN(ov) && ov > 0) return ov;
+    return usdJpyRate;
+  }
+
+  function updateForexCalc() {
+    const rate = getEffectiveRate();
+    const usdStr = document.getElementById('forex-total-usd').value;
+    const usd = parseFloat(usdStr);
+    const jpyInput = document.getElementById('forex-total-jpy');
+    const noAreaMsg = document.getElementById('forex-no-area');
+    const sqmVal = parseFloat(document.getElementById('input-sqm').value);
+    const hasArea = !isNaN(sqmVal) && sqmVal > 0;
+
+    // Convert USD → 万円
+    if (!isNaN(usd) && usd > 0 && rate) {
+      const manEn = (usd * rate) / 10000;
+      jpyInput.value = round(manEn, 1);
+    } else {
+      jpyInput.value = '';
+    }
+
+    const totalManEn = parseFloat(jpyInput.value);
+    const hasTotal = !isNaN(totalManEn) && totalManEn > 0;
+
+    ['tsubo','sqm','sqft'].forEach(id => {
+      document.getElementById('forex-result-' + id).textContent = '—';
+    });
+
+    if (!hasTotal) { noAreaMsg.style.display = 'none'; return; }
+    if (!hasArea)  { noAreaMsg.style.display = 'block'; return; }
+    noAreaMsg.style.display = 'none';
+
+    const pricePerSqm = totalManEn / sqmVal;
+    document.getElementById('forex-result-tsubo').textContent = round(pricePerSqm * TSUBO_TO_SQM, 2).toLocaleString() + ' 万円';
+    document.getElementById('forex-result-sqm').textContent   = round(pricePerSqm, 2).toLocaleString() + ' 万円';
+    document.getElementById('forex-result-sqft').textContent  = round(pricePerSqm / SQM_TO_SQFT, 2).toLocaleString() + ' 万円';
+  }
+
+  document.getElementById('forex-total-usd').addEventListener('input', updateForexCalc);
+  document.getElementById('rate-override').addEventListener('input', () => {
+    const ov = document.getElementById('rate-override');
+    const display = document.getElementById('rate-display');
+    const v = parseFloat(ov.value);
+    if (!isNaN(v) && v > 0) {
+      display.textContent = 'USD/JPY ' + v.toFixed(2) + ' (手動)';
+    } else if (usdJpyRate) {
+      display.textContent = 'USD/JPY ' + usdJpyRate.toFixed(2);
+    }
+    updateForexCalc();
+  });
+
+  // Fetch rate on load
+  fetchRate();
+
+  // ── Reset ──────────────────────────────────────────
+  function resetAll() {
+    ['tsubo', 'sqm', 'sqft', 'jo'].forEach(id => {
+      document.getElementById('input-' + id).value = '';
+    });
+    document.getElementById('price-total').value = '';
+    document.getElementById('price-no-area').style.display = 'none';
+    document.getElementById('forex-total-usd').value = '';
+    document.getElementById('forex-total-jpy').value = '';
+    document.getElementById('rate-override').value = '';
+    document.getElementById('forex-no-area').style.display = 'none';
+    document.querySelectorAll('.unit-card').forEach(c => c.classList.remove('active'));
+    updatePriceCalc();
+    updateForexCalc();
+  }
+
+  // Bind events
+  ['tsubo', 'sqm', 'sqft', 'jo'].forEach(id => {
+    const el = document.getElementById('input-' + id);
+    el.addEventListener('input', e => {
+      setActive(id);
+      convert(id, e.target.value);
+      updateForexCalc();
+    });
+    el.addEventListener('focus', () => setActive(id));
+  });
+
+  document.getElementById('price-total').addEventListener('input', updatePriceCalc);
+</script>
+</body>
+</html>
